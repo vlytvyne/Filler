@@ -17,4 +17,12 @@
 #include "printf.h"
 #include "get_next_line.h"
 
+# define GNL(x) get_next_line(0, &line); x ft_strdel(&line);
+
+typedef struct  s_coor
+{
+    int         x;
+    int         y;
+}               t_coor;
+
 #endif
