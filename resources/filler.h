@@ -18,6 +18,9 @@
 #include "get_next_line.h"
 
 # define GNL(x) get_next_line(0, &line); x ft_strdel(&line);
+# define MY_CHAR -3
+# define EN_CHAR 0
+# define EMPTY -1
 
 typedef struct  s_coor
 {
