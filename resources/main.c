@@ -67,6 +67,25 @@ char    **get_board(t_coor size)
     return (table);
 }
 
+char	**get_block()
+{
+	char	*line;
+	char	**block;
+	int		lines_amount;
+	int		i;
+
+	i = 0;
+	GNL(lines_amount = ft_atoi(line + 6);)
+	block = (char**)malloc(sizeof(char*) * (lines_amount + 1));
+	while (i < lines_amount)
+	{
+		GNL(block[i] = ft_strdup(line);)
+		i++;
+	}
+	block[i] = NULL;
+	return (block);
+}
+
 int     **get_map(char **table, t_coor size, char my_char)
 {
     int		**map;
@@ -183,17 +202,34 @@ void	print_map(int **map, t_coor size)
 	}
 }
 
+void	print_block(char **block)
+{
+	int i;
+
+	i = 0;
+	while (block[i])
+	{
+		ft_putstr_fd(block[i], 2);
+		ft_putchar_fd('\n', 2);
+		i++;
+	}
+}
+
 int     main(void)
 {
     char    my_char;
 	t_coor	size;
+	t_coor	block_padding;
     char    **table;
+    char    **block;
     int		**map;
 
     my_char = get_my_char();
 	size = get_size();
     table = get_board(size);
 	map = get_map(table, size, my_char);
+	block = get_block();
 	print_map(map, size);
     ft_putstr("12 14\n");
+	print_block(block);
 }
