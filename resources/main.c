@@ -24,7 +24,7 @@ char    get_my_char()
     return (player_index == 1 ? 'o' : 'x');
 }
 
-t_coor  get_size()
+t_coor  get_board_size()
 {
     char	*line;
     t_coor	size;
@@ -215,6 +215,47 @@ void	print_block(char **block)
 	}
 }
 
+// t_coor	get_padding(char **block)
+// {
+// 	t_coor	padding;
+// 	int		x;
+// 	int		y;
+
+// 	padding.x = 0;
+// 	padding.y = 0;
+// 	y = 0;
+// 	while (block[y])
+// 	{
+// 		x = 0;
+// 		while (block[y][x])
+// 		{
+// 			if (block[y][x] == '*')
+// 				break;
+// 			x++;
+// 		}
+// 		if (block[y][x] == '*')
+// 			break;
+// 		y++;
+// 		padding.y++;
+// 	}
+
+// 	y = 0;
+// 	while (block[y])
+// 	{
+// 		x = 0;
+// 		while (block[y][x])
+// 		{
+// 			if (block[y][x] == '*')
+// 				break;
+// 			x++;
+// 		}
+// 		if (block[y][x] == '*')
+// 			break;
+// 		y++;
+// 		padding.y++;
+// 	}
+// }
+
 int     main(void)
 {
     char    my_char;
@@ -225,11 +266,11 @@ int     main(void)
     int		**map;
 
     my_char = get_my_char();
-	size = get_size();
+	size = get_board_size();
     table = get_board(size);
 	map = get_map(table, size, my_char);
 	block = get_block();
 	print_map(map, size);
-    ft_putstr("12 14\n");
 	print_block(block);
+    ft_putstr("12 14\n");
 }
