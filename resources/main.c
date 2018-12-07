@@ -96,13 +96,12 @@ t_piece	get_block()
 
 	i = 0;
 	p_block.size = get_block_size();
-	block = (char**)malloc(sizeof(char*) * (p_block.size.y + 1));
+	block = (char**)malloc(sizeof(char*) * p_block.size.y);
 	while (i < p_block.size.y)
 	{
 		GNL(block[i] = ft_strdup(line);)
 		i++;
 	}
-	block[i] = NULL;
 	p_block.form.cm = block;
 	return (p_block);
 }
@@ -280,6 +279,83 @@ t_coor	get_padding(t_piece block)
 	return (padding);
 }
 
+int		get_end_x_coor(t_piece block)
+{
+	int		y;
+	int		x;
+
+	x = block.size.x - 1;
+	while (x >= 0)
+	{
+		y = block.size.y - 1;
+		while (y >= 0)
+		{
+			if (block.form.cm[y][x] == '*')
+				return (x);
+			y--;
+		}
+		x--;
+	}
+	return (x);
+}
+
+int		get_end_y_coor(t_piece block)
+{
+	int		y;
+	int		x;
+
+	y = block.size.y - 1;
+	while (y >= 0)
+	{
+		x = block.size.x - 1;
+		while (x >= 0)
+		{
+			if (block.form.cm[y][x] == '*')
+				return (y);
+			x--;
+		}
+		y--;
+	}
+	return (y);
+}
+
+t_coor	get_end_coor(t_piece block)
+{
+	t_coor	end_coor;
+
+	end_coor.y = get_end_y_coor(block);
+	end_coor.x = get_end_x_coor(block);
+	return (end_coor);
+}
+
+t_piece	crop_block(t_piece block, t_coor padding)
+{
+	char	**shape;
+	t_piece	p_shape;
+	t_coor	end_coor;
+	int		y;
+	int		x;
+
+	end_coor = get_end_coor(block);
+	p_shape.size.y = end_coor.y - padding.y + 1;
+	p_shape.size.x = end_coor.x - padding.x + 1;
+	shape = (char**)malloc(sizeof(char*) * p_shape.size.y);
+	y = 0;
+	while ((y + padding.y) <= end_coor.y)
+	{
+		x = 0;
+		shape[y] = (char*)malloc(sizeof(char) * p_shape.size.x);
+		while ((x + padding.x) <= end_coor.x)
+		{
+			shape[y][x] = block.form.cm[y + padding.y][x + padding.x];
+			x++;
+		}
+		y++;
+	}
+	p_shape.form.cm = shape;
+	return (p_shape);
+}
+
 int     main(void)
 {
     char    my_char;
@@ -299,5 +375,14 @@ int     main(void)
 	padding = get_padding(block);
 	ft_putnbr_fd(padding.x, 2);
 	ft_putnbr_fd(padding.y, 2);
-    // ft_putstr("12 14\n");
+
+	t_coor end_pad = get_end_coor(block);
+	ft_putchar_fd('\n', 2);
+	ft_putnbr_fd(end_pad.x, 2);
+	ft_putnbr_fd(end_pad.y, 2);
+	ft_putchar_fd('\n', 2);
+	t_piece cb = crop_block(block, padding);
+	print_form(cb, 1);
+
+    ft_putstr("12 14\n");
 }
