@@ -40,5 +40,11 @@ typedef struct	s_piece
 	t_map		form;
 }				t_piece;
 
+typedef struct			s_list_coor
+{
+	struct	s_list_coor	*next;
+	int					sum;
+	t_coor				coor;
+}						t_lc;
 
 #endif

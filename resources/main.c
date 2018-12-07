@@ -356,6 +356,101 @@ t_piece	crop_block(t_piece block, t_coor padding)
 	return (p_shape);
 }
 
+t_lc	*fit_shape(t_piece map, t_piece shape, int m_x, int m_y)
+{
+	int		x;
+	int		y;
+	int		sum;
+	int		blocks_covered;
+	t_lc	*list;
+
+	list = (t_lc*)malloc(sizeof(t_lc));
+	blocks_covered = 0;
+	list->next = NULL;
+	sum = 0;
+	y = 0;
+	while (y < shape.size.y)
+	{
+		x = 0;
+		while (x < shape.size.x)
+		{
+			if (shape.form.cm[y][x] == '*')
+			{
+				if (map.form.im[y + m_y][x + m_x] == EN_CHAR)
+					return (NULL);
+				else if (map.form.im[y + m_y][x + m_x] == MY_CHAR)
+					blocks_covered++;
+				else
+					sum += map.form.im[y + m_y][x + m_x];
+			}
+			x++;
+		}
+		y++;
+	}
+	if (blocks_covered != 1)
+		return (NULL);
+	list->coor.x = m_x;
+	list->coor.y = m_y;
+	list->sum = sum;
+	return (list);
+}
+
+void	tlc_add_end(t_lc *head, t_lc *new)
+{
+	if (head == NULL || new == NULL)
+		return ;
+	while (head->next)
+		head = head->next;
+	head->next = new;
+}
+
+t_lc	*run_algorithm(t_piece map, t_piece shape)
+{
+	int		x;
+	int		y;
+	int		till_x;
+	int		till_y;
+	t_lc	*head;
+
+	y = 0;
+	till_x = map.size.x - shape.size.x;
+	till_y = map.size.y - shape.size.y;
+	head = NULL;
+	while (y <= till_y)
+	{
+		x = 0;
+		while (x <= till_x)
+		{
+			if (head == NULL)
+				head = fit_shape(map, shape, x, y);
+			else
+				tlc_add_end(head, fit_shape(map, shape, x, y));
+			x++;
+		}
+		y++;
+	}
+	return (head);
+}
+
+void	send_answer(t_lc *list, t_coor padding)
+{
+	int		min_sum;
+	t_coor	answer;
+
+	while (list)
+	{
+		if (list->sum < min_sum)
+		{
+			min_sum = list->sum;
+			answer = list->coor;
+		}
+		list = list->next;
+	}
+	answer.y -= padding.y;
+	answer.x -= padding.x;
+	ft_printf("%d %d\n", answer.y, answer.x);
+}
+
 int     main(void)
 {
     char    my_char;
@@ -364,15 +459,21 @@ int     main(void)
     t_piece	table;
     t_piece	block;
 	t_piece	map;
+	t_lc	*list;
+	t_piece shape;
 
     my_char = get_my_char();
 	size = get_board_size();
+
     table = get_board(size);
 	map = get_map(table, my_char);
 	block = get_block();
+
 	print_form(map, 0);
 	print_form(block, 1);
+
 	padding = get_padding(block);
+	
 	ft_putnbr_fd(padding.x, 2);
 	ft_putnbr_fd(padding.y, 2);
 
@@ -381,8 +482,14 @@ int     main(void)
 	ft_putnbr_fd(end_pad.x, 2);
 	ft_putnbr_fd(end_pad.y, 2);
 	ft_putchar_fd('\n', 2);
-	t_piece cb = crop_block(block, padding);
-	print_form(cb, 1);
-
-    ft_putstr("12 14\n");
+	shape = crop_block(block, padding);
+	print_form(shape, 1);
+	list = run_algorithm(map, shape);
+	// while (list)
+	// {
+	// 	ft_putnbr_fd(list->sum, 2);
+	// 	ft_putchar_fd('\n', 2);
+	// 	list = list->next;
+	// }
+	send_answer(list, padding);
 }
