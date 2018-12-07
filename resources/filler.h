@@ -22,10 +22,23 @@
 # define EN_CHAR 0
 # define EMPTY -1
 
+typedef	union	u_map
+{
+	int			**im;
+	char		**cm;
+}				t_map;
+
 typedef struct  s_coor
 {
     int         x;
     int         y;
 }               t_coor;
+
+typedef struct	s_piece
+{
+	t_coor		size;
+	t_map		form;
+}				t_piece;
+
 
 #endif

@@ -43,12 +43,13 @@ t_coor  get_board_size()
     return (size);
 }
 
-char    **get_board(t_coor size)
+t_piece	get_board(t_coor size)
 {
-    char    *line;
-    char    **table;
-    int     i;
+    char		*line;
+    char		**table;
+    int			i;
 	static int	fisrt_call = 1;
+	t_piece		p_table;
 
 	if (fisrt_call)
 		fisrt_call = 0;
@@ -64,45 +65,66 @@ char    **get_board(t_coor size)
         GNL(table[i] = ft_strdup(line + 4);)
         i++;
     }
-    return (table);
+	p_table.form.cm = table;
+	p_table.size = size;
+    return (p_table);
 }
 
-char	**get_block()
+t_coor	get_block_size()
+{
+	char	*line;
+    t_coor	size;
+    int		padding;
+    int		num;
+
+	padding = 1;
+	GNL(
+	size.y = ft_atoi(line + 6);
+	num = size.y;
+    while (num /= 10)
+		padding++;
+	size.x = ft_atoi(line + 6 + padding);)
+    return (size);
+}
+
+t_piece	get_block()
 {
 	char	*line;
 	char	**block;
-	int		lines_amount;
 	int		i;
+	t_piece	p_block;
 
 	i = 0;
-	GNL(lines_amount = ft_atoi(line + 6);)
-	block = (char**)malloc(sizeof(char*) * (lines_amount + 1));
-	while (i < lines_amount)
+	p_block.size = get_block_size();
+	block = (char**)malloc(sizeof(char*) * (p_block.size.y + 1));
+	while (i < p_block.size.y)
 	{
 		GNL(block[i] = ft_strdup(line);)
 		i++;
 	}
 	block[i] = NULL;
-	return (block);
+	p_block.form.cm = block;
+	return (p_block);
 }
 
-int     **get_map(char **table, t_coor size, char my_char)
+t_piece	get_map(t_piece t, char my_char)
 {
     int		**map;
 	int		x;
 	int		y;
+	t_piece	p_map;
 
 	y = 0;
-	map = (int**)malloc(sizeof(int*) * size.y);
-	while (y < size.y)
+	map = (int**)malloc(sizeof(int*) * t.size.y);
+	while (y < t.size.y)
 	{
 		x = 0;
-		map[y] = (int*)malloc(sizeof(int) * size.x);
-		while (x < size.x)
+		map[y] = (int*)malloc(sizeof(int) * t.size.x);
+		while (x < t.size.x)
 		{
-			if (table[y][x] == my_char || table[y][x] == my_char - 32)
+			if (t.form.cm[y][x] == my_char || t.form.cm[y][x] == my_char - 32)
 				map[y][x] = EMPTY;
-			else if (table[y][x] != '.')
+			else if (t.form.cm[y][x] != '.')
 				map[y][x] = EN_CHAR;
 			else
 				map[y][x] = EMPTY;
@@ -113,14 +135,14 @@ int     **get_map(char **table, t_coor size, char my_char)
 
 	int change = 0;
 	y = 0;
-	while (y < size.y)
+	while (y < t.size.y)
 	{
 		x = 0;
-		while (x < size.x)
+		while (x < t.size.x)
 		{
 			if (map[y][x] != EMPTY)
 			{
-				if (x + 1 < size.x && map[y][x + 1] == EMPTY)
+				if (x + 1 < t.size.x && map[y][x + 1] == EMPTY)
 				{
 					map[y][x + 1] = map[y][x] + 1;
 					change = 1;
@@ -142,14 +164,14 @@ int     **get_map(char **table, t_coor size, char my_char)
 	}
 
 	x = 0;
-	while (x < size.x)
+	while (x < t.size.x)
 	{
 		y = 0;
-		while (y < size.y)
+		while (y < t.size.y)
 		{
 			if (map[y][x] != EMPTY)
 			{
-				if (y + 1 < size.y && map[y + 1][x] == EMPTY)
+				if (y + 1 < t.size.y && map[y + 1][x] == EMPTY)
 				{
 					map[y + 1][x] = map[y][x] + 1;
 					change = 1;
@@ -171,30 +193,37 @@ int     **get_map(char **table, t_coor size, char my_char)
 	}
 
 	y = 0;
-	while (y < size.y)
+	while (y < t.size.y)
 	{
 		x = 0;
-		while (x < size.x)
+		while (x < t.size.x)
 		{
-			if (table[y][x] == my_char || table[y][x] == my_char - 32)
+			if (t.form.cm[y][x] == my_char || t.form.cm[y][x] == my_char - 32)
 				map[y][x] = MY_CHAR;
 			x++;
 		}
 		y++;
 	}
-	return (map);
+
+	p_map.form.im = map;
+	p_map.size = t.size;
+	return (p_map);
 }
 
-void	print_map(int **map, t_coor size)
+void	print_form(t_piece piece, int is_char)
 {
 	int y = 0;
 	int x;
-	while (y < size.y)
+
+	while (y < piece.size.y)
 	{
 		x = 0;
-		while (x < size.x)
+		while (x < piece.size.x)
 		{
-			ft_putnbr_fd(map[y][x], 2);
+			if (is_char)
+				ft_putchar_fd(piece.form.cm[y][x], 2);
+			else
+				ft_putnbr_fd(piece.form.im[y][x], 2);
 			x++;
 		}
 		ft_putchar_fd('\n', 2);
@@ -202,75 +231,73 @@ void	print_map(int **map, t_coor size)
 	}
 }
 
-void	print_block(char **block)
+int		get_y_padd(t_piece block)
 {
-	int i;
+	int		y;
+	int		x;
 
-	i = 0;
-	while (block[i])
+	y = 0;
+	while (y < block.size.y)
 	{
-		ft_putstr_fd(block[i], 2);
-		ft_putchar_fd('\n', 2);
-		i++;
+		x = 0;
+		while (x < block.size.x)
+		{
+			if (block.form.cm[y][x] == '*')
+				return (y);
+			x++;
+		}
+		y++;
 	}
+	return (y);
 }
 
-// t_coor	get_padding(char **block)
-// {
-// 	t_coor	padding;
-// 	int		x;
-// 	int		y;
+int		get_x_padd(t_piece block)
+{
+	int		y;
+	int		x;
 
-// 	padding.x = 0;
-// 	padding.y = 0;
-// 	y = 0;
-// 	while (block[y])
-// 	{
-// 		x = 0;
-// 		while (block[y][x])
-// 		{
-// 			if (block[y][x] == '*')
-// 				break;
-// 			x++;
-// 		}
-// 		if (block[y][x] == '*')
-// 			break;
-// 		y++;
-// 		padding.y++;
-// 	}
+	x = 0;
+	while (x < block.size.x)
+	{
+		y = 0;
+		while (y < block.size.y)
+		{
+			if (block.form.cm[y][x] == '*')
+				return (x);
+			y++;
+		}
+		x++;
+	}
+	return (x);
+}
 
-// 	y = 0;
-// 	while (block[y])
-// 	{
-// 		x = 0;
-// 		while (block[y][x])
-// 		{
-// 			if (block[y][x] == '*')
-// 				break;
-// 			x++;
-// 		}
-// 		if (block[y][x] == '*')
-// 			break;
-// 		y++;
-// 		padding.y++;
-// 	}
-// }
+t_coor	get_padding(t_piece block)
+{
+	t_coor	padding;
+
+	padding.y = get_y_padd(block);
+	padding.x = get_x_padd(block);
+	return (padding);
+}
 
 int     main(void)
 {
     char    my_char;
 	t_coor	size;
-	t_coor	block_padding;
-    char    **table;
-    char    **block;
-    int		**map;
+	t_coor	padding;
+    t_piece	table;
+    t_piece	block;
+	t_piece	map;
 
     my_char = get_my_char();
 	size = get_board_size();
     table = get_board(size);
-	map = get_map(table, size, my_char);
+	map = get_map(table, my_char);
 	block = get_block();
-	print_map(map, size);
-	print_block(block);
-    ft_putstr("12 14\n");
+	print_form(map, 0);
+	print_form(block, 1);
+	padding = get_padding(block);
+	ft_putnbr_fd(padding.x, 2);
+	ft_putnbr_fd(padding.y, 2);
+    // ft_putstr("12 14\n");
 }
