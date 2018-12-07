@@ -24,22 +24,19 @@ char    get_my_char()
     return (player_index == 1 ? 'o' : 'x');
 }
 
-t_coor  get_board_size()
+t_coor  get_board_size(char **line)
 {
-    char	*line;
     t_coor	size;
     int		padding;
     int		num;
 
 	padding = 1;
-	if (get_next_line(0, &line) <= 0)
-		return (size);
-	size.y = ft_atoi(line + 8);
+	size.y = ft_atoi(*line + 8);
 	num = size.y;
     while (num /= 10)
 		padding++;
-	size.x = ft_atoi(line + 8 + padding);
-    ft_strdel(&line);
+	size.x = ft_atoi(*line + 8 + padding);
+    ft_strdel(line);
     return (size);
 }
 
@@ -51,12 +48,6 @@ t_piece	get_board(t_coor size)
 	static int	fisrt_call = 1;
 	t_piece		p_table;
 
-	if (fisrt_call)
-		fisrt_call = 0;
-	else
-	{
-		GNL()
-	}
     i = 0;
 	GNL();
     table = (char**)malloc(sizeof(char*) * size.y);
@@ -461,35 +452,30 @@ int     main(void)
 	t_piece	map;
 	t_lc	*list;
 	t_piece shape;
+	int		first_time;
+	char	*line;
+
+	first_time = 1;
 
     my_char = get_my_char();
-	size = get_board_size();
+	while (get_next_line(0, &line) > 0)
+	{
+		if (first_time)
+		{
+			first_time = 0;
+			size = get_board_size(&line);
+		}
+		else
+		{
+			free(line);
+		}
 
-    table = get_board(size);
-	map = get_map(table, my_char);
-	block = get_block();
-
-	print_form(map, 0);
-	print_form(block, 1);
-
-	padding = get_padding(block);
-	
-	ft_putnbr_fd(padding.x, 2);
-	ft_putnbr_fd(padding.y, 2);
-
-	t_coor end_pad = get_end_coor(block);
-	ft_putchar_fd('\n', 2);
-	ft_putnbr_fd(end_pad.x, 2);
-	ft_putnbr_fd(end_pad.y, 2);
-	ft_putchar_fd('\n', 2);
-	shape = crop_block(block, padding);
-	print_form(shape, 1);
-	list = run_algorithm(map, shape);
-	// while (list)
-	// {
-	// 	ft_putnbr_fd(list->sum, 2);
-	// 	ft_putchar_fd('\n', 2);
-	// 	list = list->next;
-	// }
-	send_answer(list, padding);
+		table = get_board(size);
+		map = get_map(table, my_char);
+		block = get_block();
+		padding = get_padding(block);
+		shape = crop_block(block, padding);
+		list = run_algorithm(map, shape);
+		send_answer(list, padding);
+	}
 }
