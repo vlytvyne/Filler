@@ -428,6 +428,7 @@ void	send_answer(t_lc *list, t_coor padding)
 	int		min_sum;
 	t_coor	answer;
 
+	min_sum = INT_MAX;
 	while (list)
 	{
 		if (list->sum < min_sum)
