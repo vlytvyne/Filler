@@ -97,15 +97,14 @@ t_piece	get_block()
 	return (p_block);
 }
 
-t_piece	get_map(t_piece t, char my_char)
+//totaly more than 25 lines
+
+void	init_map(int **map, t_piece t, char my_char)
 {
-    int		**map;
 	int		x;
 	int		y;
-	t_piece	p_map;
 
 	y = 0;
-	map = (int**)malloc(sizeof(int*) * t.size.y);
 	while (y < t.size.y)
 	{
 		x = 0;
@@ -122,36 +121,54 @@ t_piece	get_map(t_piece t, char my_char)
 		}
 		y++;
 	}
+}
 
-	int change = 0;
+void	set_num_field(int **map, int *change, int x, int y, int mode)
+{
+	if (mode == 1)
+		map[y][x + 1] = map[y][x] + 1;
+	else if (mode == 2)
+		map[y][x - 1] = map[y][x] + 1;
+	else if (mode == 3)
+		map[y + 1][x] = map[y][x] + 1;
+	else
+		map[y - 1][x] = map[y][x] + 1;
+	*change = 1;
+}
+
+void	map_draw_horizontal(int **map, t_piece t)
+{
+	int y;
+	int x;
+	int change;
+
 	y = 0;
 	while (y < t.size.y)
 	{
 		x = 0;
 		while (x < t.size.x)
 		{
+			change = 0;
 			if (map[y][x] != EMPTY)
 			{
 				if (x + 1 < t.size.x && map[y][x + 1] == EMPTY)
-				{
-					map[y][x + 1] = map[y][x] + 1;
-					change = 1;
-				}
+					set_num_field(map, &change, x, y, 1);
 				if (x - 1 >= 0 && map[y][x - 1] == EMPTY)
-				{
-					map[y][x - 1] = map[y][x] + 1;
-					change = 1;
-				}
+					set_num_field(map, &change, x, y, 2);
 				if (change)
-				{
 					x = -1;
-					change = 0;
-				}
 			}
 			x++;
 		}
 		y++;
 	}
+}
+
+void	map_draw_vertical(int **map, t_piece t)
+{
+	int y;
+	int x;
+	int change;
 
 	x = 0;
 	while (x < t.size.x)
@@ -159,28 +176,26 @@ t_piece	get_map(t_piece t, char my_char)
 		y = 0;
 		while (y < t.size.y)
 		{
+			change = 0;
 			if (map[y][x] != EMPTY)
 			{
 				if (y + 1 < t.size.y && map[y + 1][x] == EMPTY)
-				{
-					map[y + 1][x] = map[y][x] + 1;
-					change = 1;
-				}
+					set_num_field(map, &change, x, y, 3);
 				if (y - 1 >= 0 && map[y - 1][x] == EMPTY)
-				{
-					map[y - 1][x] = map[y][x] + 1;
-					change = 1;
-				}
+					set_num_field(map, &change, x, y, 4);
 				if (change)
-				{
 					y = -1;
-					change = 0;
-				}
 			}
 			y++;
 		}
 		x++;
 	}
+}
+
+void	map_mark_my_char(int **map, t_piece t, char my_char)
+{
+	int x;
+	int y;
 
 	y = 0;
 	while (y < t.size.y)
@@ -194,6 +209,20 @@ t_piece	get_map(t_piece t, char my_char)
 		}
 		y++;
 	}
+}
+
+t_piece	get_map(t_piece t, char my_char)
+{
+    int		**map;
+	int		x;
+	int		y;
+	t_piece	p_map;
+
+	map = (int**)malloc(sizeof(int*) * t.size.y);
+	init_map(map, t, my_char);
+	map_draw_horizontal(map, t);
+	map_draw_vertical(map, t);
+	map_mark_my_char(map, t, my_char);
 
 	p_map.form.im = map;
 	p_map.size = t.size;
@@ -347,19 +376,26 @@ t_piece	crop_block(t_piece block, t_coor padding)
 	return (p_shape);
 }
 
+t_lc	*create_lc(int x, int y, int sum)
+{
+	t_lc	*list;
+
+	list = (t_lc*)malloc(sizeof(t_lc));
+	list->next = NULL;
+	list->coor.x = x;
+	list->coor.y = y;
+	list->sum = sum;
+	return (list);
+}
+
 t_lc	*fit_shape(t_piece map, t_piece shape, int m_x, int m_y)
 {
 	int		x;
 	int		y;
 	int		sum;
 	int		blocks_covered;
-	t_lc	*list;
 
-	list = (t_lc*)malloc(sizeof(t_lc));
-	blocks_covered = 0;
-	list->next = NULL;
-	sum = 0;
-	y = 0;
+	zero_vars(3, &blocks_covered, &y, &sum);
 	while (y < shape.size.y)
 	{
 		x = 0;
@@ -378,12 +414,7 @@ t_lc	*fit_shape(t_piece map, t_piece shape, int m_x, int m_y)
 		}
 		y++;
 	}
-	if (blocks_covered != 1)
-		return (NULL);
-	list->coor.x = m_x;
-	list->coor.y = m_y;
-	list->sum = sum;
-	return (list);
+	return (blocks_covered != 1 ? NULL : create_lc(m_x, m_y, sum));
 }
 
 void	tlc_add_end(t_lc *head, t_lc *new)
@@ -443,40 +474,41 @@ void	send_answer(t_lc *list, t_coor padding)
 	ft_printf("%d %d\n", answer.y, answer.x);
 }
 
-int     main(void)
+void	fire(char my_char, t_coor board_size)
 {
-    char    my_char;
-	t_coor	size;
 	t_coor	padding;
     t_piece	table;
     t_piece	block;
 	t_piece	map;
-	t_lc	*list;
 	t_piece shape;
-	int		first_time;
+
+	table = get_board(board_size);
+	map = get_map(table, my_char);
+	block = get_block();
+	padding = get_padding(block);
+	shape = crop_block(block, padding);
+	send_answer(run_algorithm(map, shape), padding);	
+}
+
+//too f*cking many variables
+int     main(void)
+{
+    char    my_char;
 	char	*line;
+	t_coor	board_size;
+	int		first_time;
 
 	first_time = 1;
-
     my_char = get_my_char();
 	while (get_next_line(0, &line) > 0)
 	{
 		if (first_time)
 		{
 			first_time = 0;
-			size = get_board_size(&line);
+			board_size = get_board_size(&line);
 		}
 		else
-		{
 			free(line);
-		}
-
-		table = get_board(size);
-		map = get_map(table, my_char);
-		block = get_block();
-		padding = get_padding(block);
-		shape = crop_block(block, padding);
-		list = run_algorithm(map, shape);
-		send_answer(list, padding);
+		fire(my_char, board_size);
 	}
 }
