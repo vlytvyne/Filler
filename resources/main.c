@@ -123,24 +123,29 @@ void	init_map(int **map, t_piece t, char my_char)
 	}
 }
 
-void	set_num_field(int **map, int *change, int x, int y, int mode)
+void	set_left_values(int **map, int x, int y)
 {
-	if (mode == 1)
-		map[y][x + 1] = map[y][x] + 1;
-	else if (mode == 2)
+	while (x > 0)
+	{
 		map[y][x - 1] = map[y][x] + 1;
-	else if (mode == 3)
-		map[y + 1][x] = map[y][x] + 1;
-	else
-		map[y - 1][x] = map[y][x] + 1;
-	*change = 1;
+		x--;
+	}
+}
+
+void	set_right_values(int **map, int x, int y, int size_x)
+{
+	while (x < size_x - 1)
+	{
+		if (map[y][x + 1] != EN_CHAR)
+			map[y][x + 1] = map[y][x] + 1;
+		x++;
+	}
 }
 
 void	map_draw_horizontal(int **map, t_piece t)
 {
 	int y;
 	int x;
-	int change;
 
 	y = 0;
 	while (y < t.size.y)
@@ -148,18 +153,33 @@ void	map_draw_horizontal(int **map, t_piece t)
 		x = 0;
 		while (x < t.size.x)
 		{
-			change = 0;
-			if (map[y][x] != EMPTY)
+			if (map[y][x] == EN_CHAR)
 			{
-				if (x + 1 < t.size.x && map[y][x + 1] == EMPTY)
-					set_num_field(map, &change, x, y, 1);
-				if (x - 1 >= 0 && map[y][x - 1] == EMPTY)
-					set_num_field(map, &change, x, y, 2);
-				if (change)
-					x = -1;
+				set_left_values(map, x, y);
+				set_right_values(map, x, y, t.size.x);
+				break ;
 			}
 			x++;
 		}
+		y++;
+	}
+}
+
+void	set_under_values(int **map, int x, int y)
+{
+	while (y > 0)
+	{
+		map[y - 1][x] = map[y][x] + 1;
+		y--;
+	}
+}
+
+void	set_beneath_values(int **map, int x, int y, int size_y)
+{
+	while (y < size_y - 1)
+	{
+		if (map[y + 1][x] == EMPTY)
+			map[y + 1][x] = map[y][x] + 1;
 		y++;
 	}
 }
@@ -168,7 +188,6 @@ void	map_draw_vertical(int **map, t_piece t)
 {
 	int y;
 	int x;
-	int change;
 
 	x = 0;
 	while (x < t.size.x)
@@ -176,15 +195,11 @@ void	map_draw_vertical(int **map, t_piece t)
 		y = 0;
 		while (y < t.size.y)
 		{
-			change = 0;
 			if (map[y][x] != EMPTY)
 			{
-				if (y + 1 < t.size.y && map[y + 1][x] == EMPTY)
-					set_num_field(map, &change, x, y, 3);
-				if (y - 1 >= 0 && map[y - 1][x] == EMPTY)
-					set_num_field(map, &change, x, y, 4);
-				if (change)
-					y = -1;
+				set_under_values(map, x, y);
+				set_beneath_values(map, x, y, t.size.y);
+				break ;
 			}
 			y++;
 		}
@@ -240,9 +255,9 @@ void	print_form(t_piece piece, int is_char)
 		while (x < piece.size.x)
 		{
 			if (is_char)
-				ft_putchar_fd(piece.form.cm[y][x], 2);
+				fprintf(stderr, "%c",piece.form.cm[y][x]);
 			else
-				ft_putnbr_fd(piece.form.im[y][x], 2);
+				fprintf(stderr, "%-3i",piece.form.im[y][x]);
 			x++;
 		}
 		ft_putchar_fd('\n', 2);
