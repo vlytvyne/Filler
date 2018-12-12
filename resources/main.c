@@ -473,6 +473,7 @@ void	send_answer(t_lc *list, t_coor padding)
 {
 	int		min_sum;
 	t_coor	answer;
+	t_lc	*to_free;
 
 	min_sum = INT_MAX;
 	while (list)
@@ -482,30 +483,48 @@ void	send_answer(t_lc *list, t_coor padding)
 			min_sum = list->sum;
 			answer = list->coor;
 		}
+		to_free = list;
 		list = list->next;
+		free(to_free);
 	}
 	answer.y -= padding.y;
 	answer.x -= padding.x;
 	ft_printf("%d %d\n", answer.y, answer.x);
 }
 
+void	free_piece(t_piece piece)
+{
+	int y;
+
+	y = 0;
+	while (y < piece.size.y)
+	{
+		free(piece.form.cm[y]);
+		y++;
+	}
+	free(piece.form.cm);
+}
+
 void	fire(char my_char, t_coor board_size)
 {
 	t_coor	padding;
-    t_piece	table;
+    t_piece	board;
     t_piece	block;
 	t_piece	map;
 	t_piece shape;
 
-	table = get_board(board_size);
-	map = get_map(table, my_char);
+	board = get_board(board_size);
+	map = get_map(board, my_char);
+	free_piece(board);
 	block = get_block();
 	padding = get_padding(block);
 	shape = crop_block(block, padding);
-	send_answer(run_algorithm(map, shape), padding);	
+	free_piece(block);
+	send_answer(run_algorithm(map, shape), padding);
+	free_piece(shape);
+	free_piece(map);
 }
 
-//too f*cking many variables
 int     main(void)
 {
     char    my_char;
@@ -526,4 +545,5 @@ int     main(void)
 			free(line);
 		fire(my_char, board_size);
 	}
+	system("leaks vlytvyne.filler > result");
 }
